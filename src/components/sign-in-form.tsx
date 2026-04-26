@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  updateProfile
+} from "firebase/auth";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/components/auth-provider";
@@ -10,6 +16,7 @@ import { clientAuth } from "@/lib/firebase/client";
 export function SignInForm() {
   const router = useRouter();
   const { firebaseEnabled, user } = useAuth();
+  const googleProvider = new GoogleAuthProvider();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -55,6 +62,25 @@ export function SignInForm() {
     }
   }
 
+  async function handleGoogleSignIn() {
+    if (!clientAuth) {
+      setError("Firebase is not configured yet.");
+      return;
+    }
+
+    setPending(true);
+    setError(null);
+
+    try {
+      await signInWithPopup(clientAuth, googleProvider);
+      router.push("/dashboard");
+    } catch (submissionError) {
+      setError(submissionError instanceof Error ? submissionError.message : "Google sign-in failed.");
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <section className="hero-shell">
       <div className="hero-card form-card">
@@ -79,6 +105,10 @@ export function SignInForm() {
             Create account
           </button>
         </div>
+
+        <button className="ghost-button auth-provider-button" disabled={!firebaseEnabled || pending} onClick={handleGoogleSignIn} type="button">
+          Continue with Google
+        </button>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           {mode === "signup" ? (

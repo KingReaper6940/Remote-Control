@@ -1,0 +1,20 @@
+
+> remote-control@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.32:3000
+- Environments: .env.local
+✓ Ready in 430ms
+
+ GET / 200 in 1421ms (next.js: 1222ms, application-code: 198ms)
+ GET / 200 in 30ms (next.js: 4ms, application-code: 26ms)
+ GET /signin 200 in 182ms (next.js: 164ms, application-code: 18ms)
+✓ Compiled in 27ms
+ GET /signin 200 in 234ms (next.js: 85ms, application-code: 150ms)
+ GET / 200 in 234ms (next.js: 120ms, application-code: 114ms)
+ GET /signin 200 in 95ms (next.js: 3ms, application-code: 91ms)
+ GET / 200 in 76ms (next.js: 5ms, application-code: 71ms)
+ GET /signin 200 in 51ms (next.js: 4ms, application-code: 47ms)
+ GET / 200 in 32ms (next.js: 5ms, application-code: 27ms)
