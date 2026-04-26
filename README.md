@@ -12,9 +12,9 @@ This repo now contains a working MVP foundation for that product.
 
 ## What is in the MVP
 
-- `Next.js` app with a polished landing page, sign-in flow, and mobile-first dashboard
-- `Firebase Auth` on the client for account creation and sign-in
-- `Firebase Admin + Firestore` on the server for pairing codes, devices, and commands
+- `Next.js` app with a polished landing page, Clerk auth flow, and mobile-first dashboard
+- `Clerk` for authentication and account management
+- `Convex` for devices, commands, pairing codes, and bridge tokens
 - desktop connector script that pairs via a one-time code and polls for queued work
 - `Codex` adapter that runs `codex exec`
 - `Cursor` handoff adapter that writes a prompt file and opens it in Cursor
@@ -25,60 +25,62 @@ This repo now contains a working MVP foundation for that product.
 
 - `src/app/page.tsx`
   - landing page that explains the product and routes users into auth
-- `src/app/signin/page.tsx`
-  - email/password sign-in and sign-up
+- `src/app/signin/[[...sign-in]]/page.tsx`
+  - Clerk-powered sign-in
+- `src/app/signup/[[...sign-up]]/page.tsx`
+  - Clerk-powered sign-up
 - `src/app/dashboard/page.tsx`
   - device list, pairing, command composer, and activity feed
 
-### API layer
+### Convex backend
 
-- `src/app/api/bootstrap/route.ts`
-  - returns the authenticated user's devices and recent commands
-- `src/app/api/pairing-codes/route.ts`
-  - creates a short-lived pairing code
-- `src/app/api/commands/route.ts`
-  - queues a command for a device
-- `src/app/api/bridge/*`
-  - connector pairing, polling, and result reporting
+- `convex/dashboard.ts`
+  - authenticated queries and mutations for the dashboard
+- `convex/bridge.ts`
+  - device pairing, command claiming, and result submission logic
+- `convex/http.ts`
+  - HTTP endpoints the desktop connector can call
 
 ### Data model
 
-- `users/{uid}`
-  - profile info
-- `users/{uid}/devices/{deviceId}`
+- `devices`
   - connected machine metadata and online status
-- `users/{uid}/commands/{commandId}`
+- `commands`
   - queued, running, completed, or failed remote work items
-- `pairingCodes/{code}`
+- `pairingCodes`
   - short-lived pairing tokens
-- `bridgeTokens/{sha256(token)}`
+- `bridgeTokens`
   - secure connector lookup records
 
-## Firebase setup
+## Clerk + Convex setup
 
-Create a Firebase project and enable:
+Create:
 
-1. `Authentication`
-   Use Email/Password sign-in.
-2. `Cloud Firestore`
-   Start in production or development mode.
-3. `Service account`
-   Generate a service account key for server-side credentials.
+1. a `Clerk` application
+2. a `Convex` project
+
+Then connect them using the Convex Clerk guide:
+
+- [docs.convex.dev/auth/clerk](https://docs.convex.dev/auth/clerk)
+- [clerk.com/docs/quickstarts/nextjs](https://clerk.com/docs/quickstarts/nextjs)
 
 Add these values to `.env.local`:
 
 ```bash
-NEXT_PUBLIC_FIREBASE_API_KEY=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-NEXT_PUBLIC_FIREBASE_APP_ID=
-
-FIREBASE_PROJECT_ID=
-FIREBASE_CLIENT_EMAIL=
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+NEXT_PUBLIC_CONVEX_URL=
+NEXT_PUBLIC_CONVEX_SITE_URL=
+CLERK_JWT_ISSUER_DOMAIN=
 ```
+
+You will also need to run:
+
+```bash
+npm run convex:dev
+```
+
+That creates the Convex deployment wiring for your project and lets the backend functions go live.
 
 ## Local development
 
@@ -86,6 +88,12 @@ Install dependencies:
 
 ```bash
 npm install
+```
+
+Start Convex in one terminal:
+
+```bash
+npm run convex:dev
 ```
 
 Run the web app:
@@ -103,7 +111,7 @@ Open [http://localhost:3000](http://localhost:3000).
 3. Pair a desktop connector:
 
 ```bash
-npm run bridge:pair -- --server http://localhost:3000 --code AB12CD34 --name "Studio PC" --platforms codex,cursor --workspace "C:\Projects"
+npm run bridge:pair -- --server https://your-deployment.convex.site --code AB12CD34 --name "Studio PC" --platforms codex,cursor --workspace "C:\Projects"
 ```
 
 4. Start the connector loop:
@@ -140,18 +148,18 @@ This still makes Cursor pairable now, while leaving room for a richer integratio
 
 A good first production path is:
 
-1. Deploy the Next.js app to `Vercel` or `Firebase App Hosting`
-2. Keep Firestore as the system of record
+1. Deploy the Next.js app to `Vercel`
+2. Keep `Convex` as the system of record
 3. Ship the connector as a signed desktop installer later
-4. Add websockets or FCM for lower-latency delivery
+4. Lean into Convex realtime subscriptions for lower-latency delivery
 5. Add billing, team workspaces, audit history, and scoped device permissions
 
 ## Near-term roadmap
 
 The current repo is the foundation. The next product steps I would build are:
 
-1. Firebase session cookies so dashboard auth is server-aware too
-2. Firestore security rules and indexes committed to the repo
+1. richer dashboard views for projects, active sessions, and per-device workspaces
+2. deeper Cursor integration beyond prompt-file handoff
 3. richer command types like `resume last session`, `attach screenshot`, and `open workspace`
 4. streaming logs instead of polling snapshots
 5. packaged desktop connector with auto-update and tray UI

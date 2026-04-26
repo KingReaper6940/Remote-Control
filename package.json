@@ -7,12 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "convex:dev": "convex dev",
+    "convex:deploy": "convex deploy",
     "bridge": "tsx connector/bridge.ts",
     "bridge:pair": "tsx connector/bridge.ts pair"
   },
   "dependencies": {
-    "firebase": "latest",
-    "firebase-admin": "latest",
+    "@clerk/nextjs": "latest",
+    "convex": "latest",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest"

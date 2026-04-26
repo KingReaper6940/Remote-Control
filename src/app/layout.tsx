@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { AuthProvider } from "@/components/auth-provider";
+import { Providers } from "@/components/providers";
 
 import "./globals.css";
 
@@ -17,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

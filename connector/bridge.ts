@@ -156,10 +156,10 @@ async function pairConnector() {
   const platforms = readPlatforms();
 
   if (!server || !code || platforms.length === 0) {
-    throw new Error("Usage: npm run bridge:pair -- --server <url> --code <pair-code> --name <device> --platforms codex,cursor");
+    throw new Error("Usage: npm run bridge:pair -- --server <convex-site-url> --code <pair-code> --name <device> --platforms codex,cursor");
   }
 
-  const response = await postJson<PairResponse>(`${server.replace(/\/$/, "")}/api/bridge/pair`, {
+  const response = await postJson<PairResponse>(`${server.replace(/\/$/, "")}/pair`, {
     method: "POST",
     headers: {
       "content-type": "application/json"
@@ -193,14 +193,14 @@ async function runConnector() {
   while (true) {
     try {
       const response = await postJson<{ command: { id: string; target: DevicePlatform; prompt: string; workspaceRoot?: string | null } | null }>(
-        `${config.server.replace(/\/$/, "")}/api/bridge/pull`,
+        `${config.server.replace(/\/$/, "")}/pull`,
         {
-        method: "POST",
-        headers: {
-          "x-bridge-token": config.bridgeToken,
-          "x-device-id": config.deviceId
+          method: "POST",
+          headers: {
+            "x-bridge-token": config.bridgeToken,
+            "x-device-id": config.deviceId
+          }
         }
-      }
       );
 
       if (!response.command) {
@@ -211,7 +211,7 @@ async function runConnector() {
       console.log(`Running ${response.command.target} command ${response.command.id}...`);
       const result = await executeCommand(response.command);
 
-      await postJson(`${config.server.replace(/\/$/, "")}/api/bridge/results`, {
+      await postJson(`${config.server.replace(/\/$/, "")}/results`, {
         method: "POST",
         headers: {
           "content-type": "application/json",

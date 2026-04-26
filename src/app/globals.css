@@ -192,6 +192,19 @@ pre,
   max-width: 560px;
 }
 
+.auth-shell {
+  place-items: center;
+}
+
+.auth-card,
+.setup-panel {
+  max-width: 720px;
+}
+
+.clerk-shell {
+  margin-top: 24px;
+}
+
 .auth-form,
 .composer-form {
   display: grid;

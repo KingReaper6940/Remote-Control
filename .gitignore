@@ -13,3 +13,5 @@ dist
 .env.production.local
 .env.test.local
 connector-state
+convex/_generated
+.convex

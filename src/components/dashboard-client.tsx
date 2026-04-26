@@ -1,10 +1,12 @@
 "use client";
 
-import { startTransition, useCallback, useDeferredValue, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useDeferredValue, useEffect, useState } from "react";
+import { SignOutButton, UserButton, useAuth, useUser } from "@clerk/nextjs";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
 
-import { useAuth } from "@/components/auth-provider";
-import type { BootstrapResponse, CommandRecord, DevicePlatform, DeviceRecord } from "@/lib/types";
+import { convexApi } from "@/lib/convex-api";
+import { publicConvexSiteUrl } from "@/lib/env";
+import type { BootstrapResponse, DevicePlatform } from "@/lib/types";
 
 function formatDate(value: string | null | undefined) {
   if (!value) {
@@ -14,140 +16,43 @@ function formatDate(value: string | null | undefined) {
   return new Date(value).toLocaleString();
 }
 
-async function readJson<T>(response: Response): Promise<T> {
-  const payload = (await response.json()) as Record<string, unknown>;
-
-  if (!response.ok) {
-    throw new Error(typeof payload.error === "string" ? payload.error : "Request failed.");
-  }
-
-  return payload as T;
-}
-
 export function DashboardClient() {
-  const router = useRouter();
-  const { ready, user, firebaseEnabled, getToken, signOutUser } = useAuth();
-  const [devices, setDevices] = useState<DeviceRecord[]>([]);
-  const [commands, setCommands] = useState<CommandRecord[]>([]);
+  const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
+  const { isAuthenticated, isLoading } = useConvexAuth();
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [selectedTarget, setSelectedTarget] = useState<DevicePlatform>("codex");
   const [prompt, setPrompt] = useState("");
   const [workspaceRoot, setWorkspaceRoot] = useState("");
   const [pairingCode, setPairingCode] = useState<{ code: string; expiresAt: string } | null>(null);
-  const [loading, setLoading] = useState(firebaseEnabled);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const deferredPrompt = useDeferredValue(prompt);
-
-  const refreshDashboard = useCallback(async () => {
-    if (!user) {
-      return;
-    }
-
-    const token = await getToken();
-
-    if (!token) {
-      return;
-    }
-
-    const response = await fetch("/api/bootstrap", {
-      headers: {
-        authorization: `Bearer ${token}`
-      }
-    });
-
-    const payload = await readJson<BootstrapResponse>(response);
-
-    startTransition(() => {
-      setDevices(payload.devices);
-      setCommands(payload.commands);
-      setSelectedDeviceId((current) => {
-        if (current && payload.devices.some((device) => device.id === current)) {
-          return current;
-        }
-
-        return payload.devices[0]?.id ?? "";
-      });
-      setSelectedTarget((current) => {
-        const defaultDevice = payload.devices.find((device) => device.id === selectedDeviceId) ?? payload.devices[0];
-
-        if (defaultDevice?.platforms.includes(current)) {
-          return current;
-        }
-
-        return defaultDevice?.platforms[0] ?? "codex";
-      });
-    });
-  }, [getToken, selectedDeviceId, user]);
+  const bootstrap = useQuery(convexApi.dashboard.bootstrap, isAuthenticated ? {} : "skip") as BootstrapResponse | undefined;
+  const createPairingCode = useMutation(convexApi.dashboard.createPairingCode);
+  const queueCommand = useMutation(convexApi.dashboard.queueCommand);
+  const devices = bootstrap?.devices ?? [];
+  const commands = bootstrap?.commands ?? [];
+  const effectiveSelectedDeviceId = selectedDeviceId || devices[0]?.id || "";
+  const selectedDevice = devices.find((device) => device.id === effectiveSelectedDeviceId) ?? null;
+  const effectiveSelectedTarget = selectedDevice?.platforms.includes(selectedTarget)
+    ? selectedTarget
+    : selectedDevice?.platforms[0] ?? "codex";
 
   useEffect(() => {
-    if (!ready) {
+    if (!isLoaded) {
       return;
     }
 
-    if (!firebaseEnabled) {
-      return;
+    if (!isSignedIn) {
+      window.location.href = "/signin";
     }
-
-    if (!user) {
-      router.replace("/signin");
-      return;
-    }
-
-    let cancelled = false;
-
-    async function boot() {
-      try {
-        await refreshDashboard();
-      } catch (bootstrapError) {
-        if (!cancelled) {
-          setError(bootstrapError instanceof Error ? bootstrapError.message : "Unable to load the dashboard.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void boot();
-
-    const interval = window.setInterval(() => {
-      void refreshDashboard();
-    }, 5000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, [firebaseEnabled, ready, refreshDashboard, router, user]);
-
-  async function callAuthedApi<T>(path: string, init?: RequestInit): Promise<T> {
-    const token = await getToken();
-
-    if (!token) {
-      throw new Error("You are no longer signed in.");
-    }
-
-    const response = await fetch(path, {
-      ...init,
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-        ...(init?.headers ?? {})
-      }
-    });
-
-    return readJson<T>(response);
-  }
+  }, [isLoaded, isSignedIn]);
 
   async function handleCreatePairCode() {
     try {
       setError(null);
-      const payload = await callAuthedApi<{
-        code: string;
-        expiresAt: string;
-      }>("/api/pairing-codes", { method: "POST" });
+      const payload = await createPairingCode({});
       setPairingCode(payload);
     } catch (pairError) {
       setError(pairError instanceof Error ? pairError.message : "Unable to create a pairing code.");
@@ -157,7 +62,7 @@ export function DashboardClient() {
   async function handleSendCommand(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!selectedDeviceId) {
+    if (!effectiveSelectedDeviceId) {
       setError("Connect a machine before sending commands.");
       return;
     }
@@ -166,18 +71,13 @@ export function DashboardClient() {
     setError(null);
 
     try {
-      await callAuthedApi("/api/commands", {
-        method: "POST",
-        body: JSON.stringify({
-          deviceId: selectedDeviceId,
-          target: selectedTarget,
-          prompt,
-          workspaceRoot
-        })
+      await queueCommand({
+        deviceId: effectiveSelectedDeviceId,
+        target: effectiveSelectedTarget,
+        prompt,
+        workspaceRoot: workspaceRoot || null
       });
-
       setPrompt("");
-      await refreshDashboard();
     } catch (commandError) {
       setError(commandError instanceof Error ? commandError.message : "Unable to queue the command.");
     } finally {
@@ -185,23 +85,16 @@ export function DashboardClient() {
     }
   }
 
-  if (!firebaseEnabled) {
-    return (
-      <section className="page-shell">
-        <div className="notice error wide-notice">
-          Add both the Firebase web config and Firebase admin credentials to <code>.env.local</code> to unlock
-          authentication, pairing, and command routing.
-        </div>
-      </section>
-    );
-  }
-
-  if (loading) {
+  if (!isLoaded || isLoading || (isAuthenticated && !bootstrap)) {
     return (
       <section className="page-shell">
         <div className="panel loading-panel">Loading your remote control cockpit...</div>
       </section>
     );
+  }
+
+  if (!isSignedIn) {
+    return null;
   }
 
   return (
@@ -213,21 +106,24 @@ export function DashboardClient() {
         </div>
 
         <div className="topbar-actions">
-          <span className="identity-pill">{user?.email ?? "Unknown user"}</span>
-          <button
-            className="chip"
-            onClick={async () => {
-              await signOutUser();
-              router.push("/signin");
-            }}
-            type="button"
-          >
-            Sign out
-          </button>
+          <span className="identity-pill">{user?.primaryEmailAddress?.emailAddress ?? user?.fullName ?? "Unknown user"}</span>
+          <UserButton />
+          <SignOutButton>
+            <button className="chip" type="button">
+              Sign out
+            </button>
+          </SignOutButton>
         </div>
       </div>
 
       {error ? <div className="notice error">{error}</div> : null}
+
+      {isLoaded && isSignedIn && !isAuthenticated ? (
+        <div className="notice error">
+          Clerk sign-in succeeded, but Convex auth is not ready yet. Make sure you set <code>CLERK_JWT_ISSUER_DOMAIN</code>{" "}
+          for Convex and complete the Clerk + Convex integration setup.
+        </div>
+      ) : null}
 
       <div className="dashboard-grid">
         <article className="panel pair-panel">
@@ -251,7 +147,7 @@ export function DashboardClient() {
           )}
 
           <code className="snippet">
-            {`npm run bridge:pair -- --server https://your-app.example.com --code ${pairingCode?.code ?? "AB12CD34"} --name "Studio PC" --platforms codex,cursor --workspace "C:\\Projects"`}
+            {`npm run bridge:pair -- --server ${publicConvexSiteUrl || "https://your-deployment.convex.site"} --code ${pairingCode?.code ?? "AB12CD34"} --name "Studio PC" --platforms codex,cursor --workspace "C:\\Projects"`}
           </code>
         </article>
 
@@ -306,10 +202,11 @@ export function DashboardClient() {
           <form className="composer-form" onSubmit={handleSendCommand}>
             <label>
               <span>Target platform</span>
-              <select onChange={(event) => setSelectedTarget(event.target.value as DevicePlatform)} value={selectedTarget}>
-                {(
-                  devices.find((device) => device.id === selectedDeviceId)?.platforms ?? (["codex", "cursor"] as DevicePlatform[])
-                ).map((platform) => (
+              <select
+                onChange={(event) => setSelectedTarget(event.target.value as DevicePlatform)}
+                value={effectiveSelectedTarget}
+              >
+                {(selectedDevice?.platforms ?? (["codex", "cursor"] as DevicePlatform[])).map((platform) => (
                   <option key={platform} value={platform}>
                     {platform}
                   </option>
@@ -336,7 +233,7 @@ export function DashboardClient() {
               />
             </label>
 
-            <button className="primary-button" disabled={sending || !prompt.trim() || devices.length === 0} type="submit">
+            <button className="primary-button" disabled={sending || !prompt.trim() || devices.length === 0 || !isAuthenticated} type="submit">
               {sending ? "Queueing..." : "Queue command"}
             </button>
           </form>

@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 
 export default function Home() {
@@ -8,11 +9,11 @@ export default function Home() {
         <h1>Run your desktop AI workflow from your phone.</h1>
         <p className="lede">
           Remote Control is the product surface for people who want their own Codex and Cursor setup reachable from
-          anywhere, with real accounts, paired machines, and mobile-first control.
+          anywhere, with Clerk-powered accounts, Convex-backed state, and mobile-first control.
         </p>
 
         <div className="hero-actions">
-          <Link className="primary-button" href="/signin">
+          <Link className="primary-button" href={"/signin" as Route}>
             Launch dashboard
           </Link>
           <a className="ghost-button" href="#product">
@@ -24,7 +25,7 @@ export default function Home() {
       <section className="feature-grid" id="product">
         <article className="feature-card">
           <h2>Account-based access</h2>
-          <p>Email/password auth via Firebase lets anyone create an account and manage only their own machines.</p>
+          <p>Clerk handles sign-in, sessions, and identity while keeping the product auth flow polished from day one.</p>
         </article>
         <article className="feature-card">
           <h2>Paired desktop connectors</h2>
@@ -32,7 +33,7 @@ export default function Home() {
         </article>
         <article className="feature-card">
           <h2>Command routing</h2>
-          <p>Prompts are queued per account, delivered to the correct device, and reported back to the mobile UI.</p>
+          <p>Prompts are queued per account in Convex, delivered to the correct device, and reported back live.</p>
         </article>
         <article className="feature-card">
           <h2>Extensible adapters</h2>

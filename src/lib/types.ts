@@ -44,5 +44,5 @@ export interface BootstrapResponse {
   };
   devices: DeviceRecord[];
   commands: CommandRecord[];
-  firebaseConfigured: boolean;
+  stackConfigured: boolean;
 }
