@@ -15,3 +15,6 @@ dist
 connector-state
 convex/_generated
 .convex
+
+# clerk configuration (can include secrets)
+/.clerk/
