@@ -1,0 +1,15 @@
+.next
+node_modules
+.vercel
+.firebase
+.idea
+.vscode
+coverage
+dist
+*.log
+.env
+.env.local
+.env.development.local
+.env.production.local
+.env.test.local
+connector-state
