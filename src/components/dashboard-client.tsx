@@ -1,7 +1,7 @@
 "use client";
 
-import { useDeferredValue, useEffect, useState } from "react";
-import { SignOutButton, UserButton, useAuth, useUser } from "@clerk/nextjs";
+import { useDeferredValue, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 
 import { convexApi } from "@/lib/convex-api";
@@ -17,7 +17,6 @@ function formatDate(value: string | null | undefined) {
 }
 
 export function DashboardClient() {
-  const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
   const { isAuthenticated, isLoading } = useConvexAuth();
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
@@ -38,16 +37,6 @@ export function DashboardClient() {
   const effectiveSelectedTarget = selectedDevice?.platforms.includes(selectedTarget)
     ? selectedTarget
     : selectedDevice?.platforms[0] ?? "codex";
-
-  useEffect(() => {
-    if (!isLoaded) {
-      return;
-    }
-
-    if (!isSignedIn) {
-      window.location.href = "/signin";
-    }
-  }, [isLoaded, isSignedIn]);
 
   async function handleCreatePairCode() {
     try {
@@ -85,16 +74,12 @@ export function DashboardClient() {
     }
   }
 
-  if (!isLoaded || isLoading || (isAuthenticated && !bootstrap)) {
+  if (isLoading || (isAuthenticated && !bootstrap)) {
     return (
       <section className="page-shell">
         <div className="panel loading-panel">Loading your remote control cockpit...</div>
       </section>
     );
-  }
-
-  if (!isSignedIn) {
-    return null;
   }
 
   return (
@@ -107,18 +92,12 @@ export function DashboardClient() {
 
         <div className="topbar-actions">
           <span className="identity-pill">{user?.primaryEmailAddress?.emailAddress ?? user?.fullName ?? "Unknown user"}</span>
-          <UserButton />
-          <SignOutButton>
-            <button className="chip" type="button">
-              Sign out
-            </button>
-          </SignOutButton>
         </div>
       </div>
 
       {error ? <div className="notice error">{error}</div> : null}
 
-      {isLoaded && isSignedIn && !isAuthenticated ? (
+      {!isAuthenticated ? (
         <div className="notice error">
           Clerk sign-in succeeded, but Convex auth is not ready yet. Make sure you set <code>CLERK_JWT_ISSUER_DOMAIN</code>{" "}
           for Convex and complete the Clerk + Convex integration setup.

@@ -1,8 +1,12 @@
+import type { Route } from "next";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+
 import { SetupNotice } from "@/components/setup-notice";
 import { DashboardClient } from "@/components/dashboard-client";
 import { hasPublicStackEnv } from "@/lib/env";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
   if (!hasPublicStackEnv) {
     return (
       <SetupNotice
@@ -17,6 +21,12 @@ export default function DashboardPage() {
         ]}
       />
     );
+  }
+
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/signin" as Route);
   }
 
   return <DashboardClient />;

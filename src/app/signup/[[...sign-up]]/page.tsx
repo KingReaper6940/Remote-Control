@@ -1,9 +1,12 @@
+import type { Route } from "next";
+import { auth } from "@clerk/nextjs/server";
 import { SignUp } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
 
 import { SetupNotice } from "@/components/setup-notice";
 import { hasPublicStackEnv } from "@/lib/env";
 
-export default function SignUpPage() {
+export default async function SignUpPage() {
   if (!hasPublicStackEnv) {
     return (
       <SetupNotice
@@ -18,6 +21,12 @@ export default function SignUpPage() {
         ]}
       />
     );
+  }
+
+  const { userId } = await auth();
+
+  if (userId) {
+    redirect("/dashboard" as Route);
   }
 
   return (
