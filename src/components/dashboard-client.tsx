@@ -2,7 +2,7 @@
 
 import { useDeferredValue, useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { useConvexAuth, useConvexConnectionState, useMutation, useQuery } from "convex/react";
 
 import { convexApi } from "@/lib/convex-api";
 import { publicConvexSiteUrl } from "@/lib/env";
@@ -19,6 +19,7 @@ function formatDate(value: string | null | undefined) {
 export function DashboardClient() {
   const { user } = useUser();
   const { isAuthenticated, isLoading } = useConvexAuth();
+  const connectionState = useConvexConnectionState();
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [selectedTarget, setSelectedTarget] = useState<DevicePlatform>("codex");
   const [prompt, setPrompt] = useState("");
@@ -77,7 +78,18 @@ export function DashboardClient() {
   if (isLoading || (isAuthenticated && !bootstrap)) {
     return (
       <section className="page-shell">
-        <div className="panel loading-panel">Loading your remote control cockpit...</div>
+        <div className="panel loading-panel">
+          <p>Loading your remote control cockpit...</p>
+          <div className="meta-row">
+            Convex auth: {isLoading ? "checking" : isAuthenticated ? "ready" : "not ready"} | websocket:{" "}
+            {connectionState.isWebSocketConnected ? "connected" : "connecting"} | ever connected:{" "}
+            {connectionState.hasEverConnected ? "yes" : "no"}
+          </div>
+          <div className="meta-row">
+            Inflight: {connectionState.hasInflightRequests ? "yes" : "no"} | retries: {connectionState.connectionRetries} | bootstrap:{" "}
+            {bootstrap ? "loaded" : "pending"}
+          </div>
+        </div>
       </section>
     );
   }
