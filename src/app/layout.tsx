@@ -1,51 +1,48 @@
-import type { Metadata } from "next";
-import { ClerkProvider, Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-import type { Route } from "next";
-import Link from "next/link";
+import type { Metadata, Viewport } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
+import { Geist, Geist_Mono } from "next/font/google";
 
 import { Providers } from "@/components/providers";
+import { SiteHeader } from "@/components/site-header";
 
 import "./globals.css";
 
+const geistSans = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+});
+
 export const metadata: Metadata = {
-  title: "Remote Control",
-  description: "A multi-user remote command surface for local AI dev tools like Codex and Cursor."
+  title: "Remote Control — Your desktop AI stack, reachable from anywhere",
+  description:
+    "Pair your desktop, route work into Codex or Cursor from your phone, and keep shipping when you are away from your desk.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0a0a0a",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
-  children
+  children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} bg-background`}
+    >
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <ClerkProvider>
-          <div className="app-frame">
-            <header className="site-header">
-              <Link className="brand-mark" href={"/" as Route}>
-                Remote Control
-              </Link>
-              <div className="topbar-actions">
-                <Show when="signed-out">
-                  <SignInButton mode="modal">
-                    <button className="chip" type="button">
-                      Sign in
-                    </button>
-                  </SignInButton>
-                  <SignUpButton mode="modal">
-                    <button className="primary-button" type="button">
-                      Sign up
-                    </button>
-                  </SignUpButton>
-                </Show>
-                <Show when="signed-in">
-                  <UserButton />
-                </Show>
-              </div>
-            </header>
-            <Providers>{children}</Providers>
-          </div>
+          <SiteHeader />
+          <Providers>{children}</Providers>
         </ClerkProvider>
       </body>
     </html>
