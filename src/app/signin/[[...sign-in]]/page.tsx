@@ -4,6 +4,7 @@ import { SignIn } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 
 import { SetupNotice } from "@/components/setup-notice";
+import { clerkAppearance } from "@/lib/clerk-appearance";
 import { hasPublicStackEnv } from "@/lib/env";
 
 export default async function SignInPage() {
@@ -36,7 +37,7 @@ export default async function SignInPage() {
         <h1>Sign in to your remote build cockpit.</h1>
         <p className="lede">Use Clerk to sign in, then pair your own desktop connector and keep working from anywhere.</p>
         <div className="clerk-shell">
-          <SignIn />
+          <SignIn appearance={clerkAppearance} />
         </div>
       </div>
     </section>

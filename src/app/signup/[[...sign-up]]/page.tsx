@@ -4,6 +4,7 @@ import { SignUp } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 
 import { SetupNotice } from "@/components/setup-notice";
+import { clerkAppearance } from "@/lib/clerk-appearance";
 import { hasPublicStackEnv } from "@/lib/env";
 
 export default async function SignUpPage() {
@@ -36,7 +37,7 @@ export default async function SignUpPage() {
         <h1>Create your remote build cockpit.</h1>
         <p className="lede">Create an account, connect your desktop tools, and route work through your own connected machine.</p>
         <div className="clerk-shell">
-          <SignUp />
+          <SignUp appearance={clerkAppearance} />
         </div>
       </div>
     </section>
