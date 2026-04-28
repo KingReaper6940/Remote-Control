@@ -9,7 +9,7 @@ export function Panel({ className, ...props }: PanelProps) {
   return (
     <section
       className={cn(
-        "rounded-2xl border border-border bg-surface/60 backdrop-blur-sm transition-shadow duration-300 hover:shadow-[0_30px_80px_-40px_rgba(0,0,0,0.7)]",
+        "rounded-2xl border border-border bg-surface/60 backdrop-blur-md transition-all duration-300 hover:shadow-[0_30px_80px_-40px_rgba(0,0,0,0.7)] hover:border-border-strong/80",
         className
       )}
       {...props}
@@ -62,7 +62,7 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-background/40 px-6 py-10 text-center">
       {icon ? (
-        <div className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-surface-elevated text-muted">
+        <div className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-gradient-to-b from-surface-elevated to-surface text-muted">
           {icon}
         </div>
       ) : null}

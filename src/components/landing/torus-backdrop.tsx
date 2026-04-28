@@ -1,15 +1,32 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
+
+interface Point3D {
+  x: number;
+  y: number;
+  z: number;
+}
+
+const ASCII_CHARS = " .:-=+*#%@";
 
 /**
- * Animated 3D torus of glyphs, inspired by the classic ASCII donut renderer.
- * Rendered to a <canvas> for performance and projected with a perspective
- * transform; characters are weighted by surface luminance so the shape reads
- * as a soft, swirling galaxy of points rather than a solid object.
+ * Animated 3D torus-knot of ASCII glyphs, ported from the sample UI's
+ * ascii-scene. Rendered to a <canvas> with perspective projection,
+ * mouse-reactive parallax, and floating particles for depth.
  */
 export function TorusBackdrop({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const frameRef = useRef(0);
+  const mouseRef = useRef({ x: 0.5, y: 0.5 });
+  const timeRef = useRef(0);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    mouseRef.current = {
+      x: e.clientX / window.innerWidth,
+      y: e.clientY / window.innerHeight,
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -21,17 +38,18 @@ export function TorusBackdrop({ className }: { className?: string }) {
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    window.addEventListener("mousemove", handleMouseMove);
+
     let width = 0;
     let height = 0;
 
     const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const parent = canvas.parentElement;
       if (!parent) return;
       const rect = parent.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.max(1, Math.floor(width * dpr));
       canvas.height = Math.max(1, Math.floor(height * dpr));
       canvas.style.width = `${width}px`;
@@ -43,123 +61,165 @@ export function TorusBackdrop({ className }: { className?: string }) {
     const ro = new ResizeObserver(resize);
     if (canvas.parentElement) ro.observe(canvas.parentElement);
 
-    const glyphs = [".", ",", ":", ";", "+", "*", "-", "/", "\\", "T", "L", "·"];
+    // ── Torus-knot geometry (p=2, q=3) ──
+    const generateTorusKnot = (
+      p: number,
+      q: number,
+      segments: number,
+      tubeSegments: number
+    ): Point3D[] => {
+      const points: Point3D[] = [];
+      for (let i = 0; i < segments; i++) {
+        for (let j = 0; j < tubeSegments; j++) {
+          const u = (i / segments) * Math.PI * 2;
+          const v = (j / tubeSegments) * Math.PI * 2;
 
-    const POINT_COUNT = 2600;
-    type Point = {
-      theta: number;
-      phi: number;
-      glyph: string;
-      jitter: number;
-    };
-    const points: Point[] = [];
-    for (let i = 0; i < POINT_COUNT; i++) {
-      points.push({
-        theta: Math.random() * Math.PI * 2,
-        phi: Math.random() * Math.PI * 2,
-        glyph: glyphs[Math.floor(Math.random() * glyphs.length)],
-        jitter: (Math.random() - 0.5) * 0.6,
-      });
-    }
+          const r = 2 + Math.cos(q * u);
+          const x = r * Math.cos(p * u);
+          const y = r * Math.sin(p * u);
+          const z = -Math.sin(q * u);
 
-    const R = 1.6;
-    const r = 0.85;
+          const tubeRadius = 0.4;
+          const nx = Math.cos(p * u) * Math.cos(v);
+          const ny = Math.sin(p * u) * Math.cos(v);
+          const nz = Math.sin(v);
 
-    let A = 0;
-    let B = 0;
-    let raf = 0;
-    let last = performance.now();
-
-    const draw = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-
-      if (!reduceMotion) {
-        A += dt * 0.32;
-        B += dt * 0.2;
+          points.push({
+            x: x + tubeRadius * nx,
+            y: y + tubeRadius * ny,
+            z: z + tubeRadius * nz,
+          });
+        }
       }
+      return points;
+    };
+
+    const torusKnot = generateTorusKnot(2, 3, 160, 20);
+
+    // ── 3D rotation ──
+    const rotatePoint = (
+      point: Point3D,
+      angleX: number,
+      angleY: number,
+      angleZ: number
+    ): Point3D => {
+      let { x, y, z } = point;
+
+      const cosX = Math.cos(angleX);
+      const sinX = Math.sin(angleX);
+      const newY = y * cosX - z * sinX;
+      const newZ = y * sinX + z * cosX;
+      y = newY;
+      z = newZ;
+
+      const cosY = Math.cos(angleY);
+      const sinY = Math.sin(angleY);
+      const newX = x * cosY + z * sinY;
+      z = -x * sinY + z * cosY;
+      x = newX;
+
+      const cosZ = Math.cos(angleZ);
+      const sinZ = Math.sin(angleZ);
+      const finalX = x * cosZ - y * sinZ;
+      const finalY = x * sinZ + y * cosZ;
+
+      return { x: finalX, y: finalY, z };
+    };
+
+    // ── Perspective projection ──
+    const project = (
+      point: Point3D,
+      centerX: number,
+      centerY: number,
+      scale: number
+    ): { x: number; y: number; z: number } => {
+      const perspective = 5;
+      const factor = perspective / (perspective + point.z);
+      return {
+        x: centerX + point.x * scale * factor,
+        y: centerY + point.y * scale * factor,
+        z: point.z,
+      };
+    };
+
+    const render = () => {
+      if (width === 0 || height === 0) {
+        frameRef.current = requestAnimationFrame(render);
+        return;
+      }
+
+      const centerX = width * 0.5;
+      const centerY = height * 0.5;
+      const scale = Math.min(width, height) * 0.32;
 
       ctx.clearRect(0, 0, width, height);
 
-      const cx = width * 0.5;
-      const cy = height * 0.5;
-      const scale = Math.min(width, height) * 0.36;
+      const mouseInfluenceX = (mouseRef.current.x - 0.5) * 0.5;
+      const mouseInfluenceY = (mouseRef.current.y - 0.5) * 0.5;
 
-      const cosA = Math.cos(A);
-      const sinA = Math.sin(A);
-      const cosB = Math.cos(B);
-      const sinB = Math.sin(B);
+      const time = timeRef.current;
+      const angleX = time * 0.3 + mouseInfluenceY;
+      const angleY = time * 0.5 + mouseInfluenceX;
+      const angleZ = time * 0.2;
 
-      const lx = 0;
-      const ly = 0.7071;
-      const lz = -0.7071;
+      // Project and depth-sort
+      const projectedPoints = torusKnot
+        .map((point) => {
+          const rotated = rotatePoint(point, angleX, angleY, angleZ);
+          return project(rotated, centerX, centerY, scale);
+        })
+        .sort((a, b) => a.z - b.z);
 
-      ctx.font =
-        '11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+      // Render ASCII glyphs
+      const charSize = Math.max(12, Math.min(width, height) * 0.025);
+      ctx.font = `${charSize}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      for (let i = 0; i < points.length; i++) {
-        const p = points[i];
-        const ct = Math.cos(p.theta);
-        const st = Math.sin(p.theta);
-        const cp = Math.cos(p.phi);
-        const sp = Math.sin(p.phi);
+      projectedPoints.forEach((point) => {
+        const normalizedZ = (point.z + 3) / 6;
+        const charIndex = Math.floor(normalizedZ * (ASCII_CHARS.length - 1));
+        const char =
+          ASCII_CHARS[Math.max(0, Math.min(ASCII_CHARS.length - 1, charIndex))];
 
-        const ox = (R + r * ct) * cp;
-        const oy = (R + r * ct) * sp;
-        const oz = r * st;
+        const brightness = 0.15 + normalizedZ * 0.85;
+        // Emerald-gold palette bridging sample green with our accent amber
+        const green = Math.floor(170 + normalizedZ * 80);
+        const red = Math.floor(green * 0.65 + normalizedZ * 40);
+        const blue = Math.floor(green * 0.45);
+        ctx.fillStyle = `rgba(${red}, ${green}, ${blue}, ${(brightness * 0.7).toFixed(3)})`;
+        ctx.fillText(char, point.x, point.y);
+      });
 
-        const x1 = ox;
-        const y1 = oy * cosA - oz * sinA;
-        const z1 = oy * sinA + oz * cosA;
+      // Floating particles
+      const particleCount = 40;
+      for (let i = 0; i < particleCount; i++) {
+        const px = (Math.sin(time * 0.5 + i * 0.5) * 0.35 + 0.5) * width;
+        const py = (Math.cos(time * 0.3 + i * 0.7) * 0.35 + 0.5) * height;
+        const pz = Math.sin(time + i) * 0.5 + 0.5;
 
-        const x2 = x1 * cosB - y1 * sinB;
-        const y2 = x1 * sinB + y1 * cosB;
-        const z2 = z1;
-
-        const nx0 = ct * cp;
-        const ny0 = ct * sp;
-        const nz0 = st;
-        const ny1 = ny0 * cosA - nz0 * sinA;
-        const nz1 = ny0 * sinA + nz0 * cosA;
-        const nx2 = nx0 * cosB - ny1 * sinB;
-        const ny2 = nx0 * sinB + ny1 * cosB;
-        const nz2 = nz1;
-
-        const K = 5;
-        const zCam = z2 + K;
-        const invZ = 1 / zCam;
-        const px = cx + x2 * scale * invZ * 2.4 + p.jitter;
-        const py = cy + y2 * scale * invZ * 2.4 + p.jitter;
-
-        if (px < -10 || px > width + 10 || py < -10 || py > height + 10) continue;
-
-        const lum = nx2 * lx + ny2 * ly + nz2 * lz;
-        const t = Math.max(0, Math.min(1, (lum + 1) * 0.5));
-        const depth = Math.max(0, Math.min(1, (z2 + 2) / 4));
-
-        const alpha = 0.08 + t * 1.05 * (0.45 + depth * 0.55);
-        if (alpha < 0.05) continue;
-
-        let glyph = p.glyph;
-        if (t > 0.85) glyph = "+";
-        else if (t < 0.15) glyph = ".";
-
-        ctx.fillStyle = `rgba(245, 244, 240, ${alpha.toFixed(3)})`;
-        ctx.fillText(glyph, px, py);
+        ctx.fillStyle = `rgba(180, 210, 160, ${(pz * 0.2).toFixed(3)})`;
+        ctx.fillText(
+          ASCII_CHARS[Math.floor(pz * (ASCII_CHARS.length - 1))],
+          px,
+          py
+        );
       }
 
-      raf = requestAnimationFrame(draw);
+      if (!reduceMotion) {
+        timeRef.current += 0.006;
+      }
+      frameRef.current = requestAnimationFrame(render);
     };
 
-    raf = requestAnimationFrame(draw);
+    frameRef.current = requestAnimationFrame(render);
 
     return () => {
-      cancelAnimationFrame(raf);
+      window.removeEventListener("mousemove", handleMouseMove);
+      cancelAnimationFrame(frameRef.current);
       ro.disconnect();
     };
-  }, []);
+  }, [handleMouseMove]);
 
   return <canvas ref={canvasRef} aria-hidden="true" className={className} />;
 }

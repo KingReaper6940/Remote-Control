@@ -80,11 +80,11 @@ export function Network() {
                     delay: idx * 0.05,
                     ease: "easeOut",
                   }}
-                  className="flex items-center justify-between rounded-lg border border-transparent px-3 py-2 text-sm transition-colors hover:border-border hover:bg-background/40"
+                  className="flex items-center justify-between rounded-lg border border-transparent px-3 py-2 text-sm transition-all duration-200 hover:border-border hover:bg-background/40 hover:shadow-[0_2px_12px_-4px_rgba(0,0,0,0.3)]"
                 >
                   <div className="flex items-center gap-3">
                     <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-50" />
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-50" style={{ animation: `ping ${1.5 + idx * 0.3}s cubic-bezier(0, 0, 0.2, 1) infinite` }} />
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
                     </span>
                     <div>

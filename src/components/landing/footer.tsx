@@ -33,6 +33,9 @@ const cols = [
 export function SiteFooter() {
   return (
     <footer className="relative">
+      {/* Gradient top divider replacing plain border */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
+
       <div className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
@@ -59,7 +62,7 @@ export function SiteFooter() {
                   <li key={link.label}>
                     <Link
                       href={link.href as Route}
-                      className="text-sm text-muted-strong transition-colors hover:text-foreground"
+                      className="text-sm text-muted-strong transition-colors duration-200 hover:text-foreground"
                     >
                       {link.label}
                     </Link>
@@ -73,13 +76,13 @@ export function SiteFooter() {
         <div className="mt-14 flex flex-col items-start justify-between gap-3 border-t border-border pt-8 text-xs text-muted md:flex-row md:items-center">
           <p>© {new Date().getFullYear()} Remote Control. Built for shipping.</p>
           <div className="flex items-center gap-4">
-            <Link href={"#" as Route} className="transition-colors hover:text-foreground">
+            <Link href={"#" as Route} className="transition-colors duration-200 hover:text-foreground">
               Privacy
             </Link>
-            <Link href={"#" as Route} className="transition-colors hover:text-foreground">
+            <Link href={"#" as Route} className="transition-colors duration-200 hover:text-foreground">
               Terms
             </Link>
-            <Link href={"#" as Route} className="transition-colors hover:text-foreground">
+            <Link href={"#" as Route} className="transition-colors duration-200 hover:text-foreground">
               Security
             </Link>
           </div>

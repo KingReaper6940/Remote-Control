@@ -447,7 +447,7 @@ function KpiGrid({
             delay: idx * 0.06,
             ease: [0.22, 1, 0.36, 1],
           }}
-          className="relative overflow-hidden rounded-2xl border border-border bg-surface/60 p-4 transition-colors duration-300 hover:border-border-strong"
+          className="shimmer-card relative overflow-hidden rounded-2xl border border-border bg-surface/60 p-4 transition-all duration-300 hover:border-border-strong hover:shadow-[0_8px_32px_-12px_rgba(0,0,0,0.4)]"
         >
           <div className="flex items-center justify-between">
             <span className="text-[0.7rem] font-medium uppercase tracking-[0.12em] text-muted">
@@ -461,7 +461,7 @@ function KpiGrid({
           <div className="mt-1 truncate text-xs text-muted">{kpi.sub}</div>
           <div
             className={cn(
-              "pointer-events-none absolute -bottom-10 -right-10 h-24 w-24 rounded-full blur-2xl",
+              "pointer-events-none absolute -bottom-10 -right-10 h-28 w-28 rounded-full blur-3xl transition-all duration-500",
               kpi.tone === "accent"
                 ? "bg-accent/20"
                 : kpi.tone === "info"
@@ -567,6 +567,7 @@ function ComposerPanel({
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               rows={7}
+              className="transition-all duration-300 focus:shadow-[0_0_0_3px_rgba(245,181,107,0.12)] focus:border-accent/40"
             />
           </div>
 
@@ -753,7 +754,16 @@ function ActivityPanel({
                     delay: idx * 0.04,
                     ease: "easeOut",
                   }}
-                  className="rounded-xl border border-border bg-background/40 p-4 transition-colors hover:border-border-strong"
+                  className={cn(
+                    "rounded-xl border bg-background/40 p-4 transition-all duration-200 hover:border-border-strong hover:shadow-[0_4px_20px_-8px_rgba(0,0,0,0.3)]",
+                    command.status === "completed"
+                      ? "border-l-2 border-l-success/50 border-t-border border-r-border border-b-border"
+                      : command.status === "failed"
+                        ? "border-l-2 border-l-danger/50 border-t-border border-r-border border-b-border"
+                        : command.status === "running"
+                          ? "border-l-2 border-l-info/50 border-t-border border-r-border border-b-border"
+                          : "border-l-2 border-l-warning/50 border-t-border border-r-border border-b-border"
+                  )}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
@@ -1027,8 +1037,8 @@ function DashboardLoading({
     <div className="grid min-h-screen place-items-center px-6">
       <Panel className="w-full max-w-xl text-center">
         <PanelBody className="space-y-5 py-10">
-          <div className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-border bg-surface-elevated">
-            <Loader2 className="h-5 w-5 animate-spin text-accent" />
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full border border-accent/20 bg-gradient-to-b from-surface-elevated to-surface glow-border">
+            <Loader2 className="h-6 w-6 animate-spin text-accent" />
           </div>
           <div>
             <p className="text-[0.72rem] font-medium uppercase tracking-[0.16em] text-muted">

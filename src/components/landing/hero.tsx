@@ -1,267 +1,168 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Route } from "next";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowUpRight,
-  CircleDot,
-  Cpu,
   PlayCircle,
   Sparkles,
-  Terminal,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TorusBackdrop } from "@/components/landing/torus-backdrop";
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   show: (i: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.7, delay: 0.1 * i, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.7, delay: 0.1 * i, ease: [0.22, 1, 0.36, 1] as const },
   }),
 };
 
+const rotatingWords = ["scale", "reason", "execute", "adapt"];
+
+function RotatingWord() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % rotatingWords.length);
+    }, 2400);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span className="relative inline-flex text-left align-bottom" style={{ perspective: "600px" }}>
+      <AnimatePresence mode="popLayout">
+        <motion.span
+          key={rotatingWords[index]}
+          initial={{ opacity: 0, y: 16, rotateX: -45 }}
+          animate={{ opacity: 1, y: 0, rotateX: 0 }}
+          exit={{ opacity: 0, y: -16, rotateX: 45 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          className="inline-block text-accent whitespace-nowrap"
+          style={{ transformOrigin: "center bottom" }}
+        >
+          {rotatingWords[index]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
 export function Hero() {
   return (
-    <section className="relative overflow-hidden border-b border-border">
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden border-b border-border">
+      {/* Grid background */}
       <div className="grid-bg absolute inset-0 mask-fade-b opacity-50" />
-      <div className="absolute -top-40 left-1/2 h-[420px] w-[820px] -translate-x-1/2 rounded-full bg-accent/15 blur-[140px]" />
 
-      {/* Animated torus of glyphs — full-width canvas, masked to feel anchored on the right */}
+      {/* Top ambient glow */}
+      <div className="absolute -top-40 left-0 h-[420px] w-[820px] rounded-full bg-accent/15 blur-[140px]" />
+
+      {/* Background video (Tree effect) */}
       <div
-        className="pointer-events-none absolute inset-0 hidden md:block"
+        className="pointer-events-none absolute inset-0"
         aria-hidden="true"
       >
-        <div className="absolute -right-[10%] -top-[10%] h-[120%] w-[85%]">
-          <TorusBackdrop className="h-full w-full" />
-        </div>
-        {/* Horizontal fade so the left half stays clean for the text */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
-        {/* Bottom fade so it dissolves into the page below */}
-        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background to-transparent" />
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="w-full h-full object-cover object-center opacity-80 md:object-right"
+        >
+          <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/bg-hero-0BnFGdr81Ifnj3WbBZoNt1KE4D5DMT.mp4" type="video/mp4" />
+        </video>
+        {/* Left readability gradient - stronger for left-aligned text */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 md:via-background/50 to-transparent" />
+        {/* Bottom dissolve */}
+        <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-background to-transparent" />
       </div>
 
-      {/* Mobile: centered torus behind text */}
-      <div
-        className="pointer-events-none absolute inset-0 md:hidden"
-        aria-hidden="true"
-      >
-        <div className="absolute inset-0 opacity-50">
-          <TorusBackdrop className="h-full w-full" />
+      {/* Noise overlay for depth */}
+      <div className="noise-overlay pointer-events-none absolute inset-0 z-[2]" />
+
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-24 md:py-32">
+        <div className="max-w-3xl">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={0}
+            className="flex items-center gap-4"
+          >
+            <div className="h-px w-8 bg-border-strong" />
+            <span className="text-xs font-mono uppercase tracking-[0.1em] text-muted-strong">
+              Autonomous AI agents for distributed computing
+            </span>
+          </motion.div>
+
+          <motion.h1
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={1}
+            className="mt-8 text-5xl font-semibold leading-[0.95] tracking-tight md:text-7xl lg:text-[5.5rem]"
+          >
+            Distributed compute,
+            <br />
+            <span className="text-muted-strong">
+              agents that <RotatingWord />
+            </span>
+          </motion.h1>
+
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={2}
+            className="mt-10 flex flex-col gap-4 sm:flex-row"
+          >
+            <Link href={"/signup" as Route}>
+              <Button size="lg" variant="primary" className="group btn-shimmer">
+                Deploy agents
+                <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+              </Button>
+            </Link>
+            <a href="#product">
+              <Button size="lg" variant="ghost">
+                <PlayCircle className="h-4 w-4" />
+                View documentation
+              </Button>
+            </a>
+          </motion.div>
+
+          {/* Stats Row */}
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={3}
+            className="mt-20 grid grid-cols-2 gap-8 md:grid-cols-3"
+          >
+            {[
+              { value: "3500+", label: "autonomous agents active" },
+              { value: "99.7%", label: "distributed uptime" },
+              { value: "<50ms", label: "execution latency" },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <div className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+                  {stat.value}
+                </div>
+                <div className="mt-2 text-[10px] uppercase tracking-[0.05em] text-muted">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </motion.div>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/70 to-background" />
-      </div>
-
-      <div className="relative mx-auto w-full max-w-7xl px-6 pb-24 pt-16 md:pt-24">
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="show"
-          custom={0}
-          className="flex justify-center"
-        >
-          <Badge tone="default" className="border-border-strong/80">
-            <Sparkles className="h-3 w-3 text-accent" />
-            Remote control for your AI dev stack
-          </Badge>
-        </motion.div>
-
-        <motion.h1
-          variants={fadeUp}
-          initial="hidden"
-          animate="show"
-          custom={1}
-          className="mx-auto mt-8 max-w-4xl text-balance text-center text-5xl font-semibold leading-[0.95] tracking-tight md:text-7xl lg:text-[5.5rem]"
-        >
-          Your desktop AI stack,
-          <br />
-          <span className="text-muted-strong">reachable from anywhere.</span>
-        </motion.h1>
-
-        <motion.p
-          variants={fadeUp}
-          initial="hidden"
-          animate="show"
-          custom={2}
-          className="mx-auto mt-7 max-w-2xl text-balance text-center text-base text-muted-strong md:text-lg"
-        >
-          Pair your own machine once, then route work into Codex or Cursor from
-          your phone — without losing the context of your real desktop setup.
-        </motion.p>
-
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="show"
-          custom={3}
-          className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
-        >
-          <Link href={"/signup" as Route}>
-            <Button size="lg" variant="primary" className="group">
-              Launch dashboard
-              <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-            </Button>
-          </Link>
-          <a href="#product">
-            <Button size="lg" variant="ghost">
-              <PlayCircle className="h-4 w-4" />
-              See how it works
-            </Button>
-          </a>
-        </motion.div>
-
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="show"
-          custom={4}
-          className="mx-auto mt-20 max-w-5xl"
-        >
-          <DashboardPreview />
-        </motion.div>
       </div>
     </section>
   );
 }
 
-function DashboardPreview() {
-  return (
-    <div className="relative">
-      <div className="absolute -inset-x-4 -top-12 h-40 bg-gradient-to-b from-accent/10 to-transparent blur-2xl" />
-      <div className="relative overflow-hidden rounded-2xl border border-border-strong bg-surface shadow-[0_30px_120px_-40px_rgba(0,0,0,0.8)]">
-        {/* Window chrome */}
-        <div className="flex items-center justify-between border-b border-border bg-surface-elevated px-5 py-3">
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-border-strong" />
-            <span className="h-2.5 w-2.5 rounded-full bg-border-strong" />
-            <span className="h-2.5 w-2.5 rounded-full bg-border-strong" />
-          </div>
-          <div className="flex items-center gap-2 rounded-md border border-border bg-background/50 px-3 py-1 text-[11px] text-muted">
-            <CircleDot className="h-3 w-3 text-success" />
-            remote.control / dashboard
-          </div>
-          <div className="text-[11px] text-muted">v1.4.0</div>
-        </div>
 
-        <div className="grid grid-cols-12 gap-0">
-          {/* Sidebar */}
-          <div className="col-span-3 border-r border-border bg-surface/60 p-4">
-            <div className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-background/40 px-3 py-2 text-xs">
-              <Cpu className="h-3.5 w-3.5 text-accent" />
-              <span className="font-medium">Studio MacBook Pro</span>
-              <span className="ml-auto h-1.5 w-1.5 rounded-full bg-success" />
-            </div>
-            <div className="space-y-1 text-xs">
-              {[
-                { label: "Overview", active: true },
-                { label: "Devices" },
-                { label: "Activity" },
-                { label: "Pairing" },
-                { label: "Settings" },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className={`flex items-center gap-2 rounded-md px-3 py-2 ${
-                    item.active
-                      ? "bg-surface-elevated text-foreground"
-                      : "text-muted hover:text-foreground"
-                  }`}
-                >
-                  <span
-                    className={`h-1 w-1 rounded-full ${
-                      item.active ? "bg-accent" : "bg-border-strong"
-                    }`}
-                  />
-                  {item.label}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Main */}
-          <div className="col-span-9 p-5">
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { label: "Devices", value: "1", sub: "1 online" },
-                { label: "Queued", value: "3", sub: "running now" },
-                { label: "Latency", value: "42ms", sub: "to Studio Mac" },
-              ].map((kpi) => (
-                <div
-                  key={kpi.label}
-                  className="rounded-lg border border-border bg-background/40 p-3"
-                >
-                  <div className="text-[10px] uppercase tracking-[0.12em] text-muted">
-                    {kpi.label}
-                  </div>
-                  <div className="mt-2 text-xl font-semibold tracking-tight">
-                    {kpi.value}
-                  </div>
-                  <div className="text-[11px] text-muted">{kpi.sub}</div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 rounded-lg border border-border bg-background/40 p-4">
-              <div className="flex items-center gap-2 text-xs text-muted">
-                <Terminal className="h-3.5 w-3.5" />
-                Compose remote task
-              </div>
-              <div className="mt-3 rounded-md border border-border bg-surface px-3 py-2.5 font-mono text-[12px] text-muted-strong">
-                <span className="text-accent">codex&gt;</span> polish the auth
-                screen, run checks, summarize what changed
-                <span className="ml-0.5 inline-block h-3 w-1.5 translate-y-0.5 animate-pulse bg-foreground" />
-              </div>
-              <div className="mt-3 flex items-center gap-2">
-                <span className="rounded-md border border-border bg-surface px-2 py-1 text-[10px] text-muted">
-                  target: codex
-                </span>
-                <span className="rounded-md border border-border bg-surface px-2 py-1 text-[10px] text-muted">
-                  workspace: ~/Projects/Remote-Control
-                </span>
-                <span className="ml-auto rounded-md bg-foreground px-3 py-1 text-[10px] font-medium text-background">
-                  Queue
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-4 rounded-lg border border-border bg-background/40 p-4">
-              <div className="text-[10px] uppercase tracking-[0.12em] text-muted">
-                Activity
-              </div>
-              <div className="mt-2 space-y-1.5 text-[12px]">
-                {[
-                  { state: "completed", text: "Refactored login form components" },
-                  { state: "running", text: "Polishing dashboard spacing" },
-                  { state: "queued", text: "Run release prep checklist" },
-                ].map((row) => (
-                  <div
-                    key={row.text}
-                    className="flex items-center gap-2 border-b border-border/60 py-1.5 last:border-0"
-                  >
-                    <span
-                      className={`h-1.5 w-1.5 rounded-full ${
-                        row.state === "completed"
-                          ? "bg-success"
-                          : row.state === "running"
-                            ? "bg-info"
-                            : "bg-warning"
-                      }`}
-                    />
-                    <span className="text-muted-strong">{row.text}</span>
-                    <span className="ml-auto text-[10px] uppercase tracking-[0.1em] text-muted">
-                      {row.state}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}

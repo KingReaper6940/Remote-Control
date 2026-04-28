@@ -8,6 +8,8 @@ import {
   Zap,
 } from "lucide-react";
 
+import { DashboardPreview } from "@/components/landing/dashboard-preview";
+
 const items = [
   {
     icon: KeyRound,
@@ -27,7 +29,7 @@ const items = [
   {
     icon: ShieldCheck,
     title: "Trust-first by design",
-    body: "Clerk for identity, short-lived pairing codes, and a connector you run yourself. Nothing happens you didn’t ask for.",
+    body: "Clerk for identity, short-lived pairing codes, and a connector you run yourself. Nothing happens you didn't ask for.",
   },
 ];
 
@@ -43,7 +45,7 @@ export function Capabilities() {
           title={
             <>
               Everything you need.{" "}
-              <span className="text-muted-strong">Nothing you don’t.</span>
+              <span className="text-muted-strong">Nothing you don&apos;t.</span>
             </>
           }
         />
@@ -62,11 +64,14 @@ export function Capabilities() {
               }}
               className="group relative bg-background p-8 transition-colors duration-300 hover:bg-surface md:p-10"
             >
+              {/* Ambient hover glow */}
+              <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-accent/0 blur-3xl transition-all duration-500 group-hover:bg-accent/10" />
+
               <div className="flex items-center justify-between">
                 <span className="font-mono text-xs text-muted">
                   {String(idx + 1).padStart(2, "0")}
                 </span>
-                <div className="grid h-10 w-10 place-items-center rounded-lg border border-border-strong bg-surface-elevated text-muted-strong transition-colors duration-300 group-hover:border-accent/40 group-hover:text-accent">
+                <div className="relative grid h-10 w-10 place-items-center rounded-lg border border-border-strong bg-surface-elevated text-muted-strong transition-all duration-300 group-hover:border-accent/40 group-hover:text-accent group-hover:shadow-[0_0_16px_rgba(245,181,107,0.15)]">
                   <item.icon className="h-4.5 w-4.5" />
                 </div>
               </div>
@@ -79,6 +84,16 @@ export function Capabilities() {
             </motion.article>
           ))}
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+          className="mx-auto mt-20 max-w-5xl"
+        >
+          <DashboardPreview />
+        </motion.div>
       </div>
     </section>
   );

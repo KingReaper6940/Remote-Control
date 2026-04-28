@@ -9,8 +9,8 @@
   --color-border-strong: #2a2a2a;
   --color-muted: #8a8a8a;
   --color-muted-strong: #a3a3a3;
-  --color-accent: #f5b56b;
-  --color-accent-soft: #2a1d12;
+  --color-accent: #835760;
+  --color-accent-soft: #231719;
   --color-success: #4ade80;
   --color-success-soft: #0f2418;
   --color-warning: #fbbf24;
@@ -48,7 +48,7 @@
     background-image:
       radial-gradient(
         circle at 50% -10%,
-        rgba(245, 181, 107, 0.08),
+        rgba(131, 87, 96, 0.08),
         transparent 45%
       ),
       radial-gradient(
@@ -60,7 +60,7 @@
   }
 
   ::selection {
-    background-color: rgba(245, 181, 107, 0.25);
+    background-color: rgba(131, 87, 96, 0.25);
     color: var(--color-foreground);
   }
 
@@ -198,4 +198,128 @@
   background: currentColor;
   opacity: 0.6;
   animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* ── Shimmer sweep for cards ── */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer-card {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(131, 87, 96, 0.06) 45%,
+    rgba(131, 87, 96, 0.12) 50%,
+    rgba(131, 87, 96, 0.06) 55%,
+    transparent 60%
+  );
+  animation: shimmer-sweep 2.4s ease-in-out 0.3s 1 forwards;
+  pointer-events: none;
+}
+
+/* ── Glow pulse for interactive elements ── */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(131, 87, 96, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px 2px rgba(131, 87, 96, 0.15);
+  }
+}
+
+.glow-border {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* ── Float for particles ── */
+@keyframes float-y {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ── Noise overlay ── */
+.noise-overlay {
+  position: relative;
+}
+.noise-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Word rotation ── */
+@keyframes word-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) rotateX(-40deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0);
+  }
+}
+
+@keyframes word-fade-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px) rotateX(40deg);
+  }
+}
+
+/* ── Step connecting line ── */
+@keyframes line-grow {
+  0% {
+    transform: scaleY(0);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+/* ── Shimmer button ── */
+@keyframes btn-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.btn-shimmer {
+  background-size: 200% auto;
+  background-image: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.12) 40%,
+    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 255, 255, 0.12) 60%,
+    transparent 80%
+  );
+  animation: btn-shimmer 3s linear infinite;
 }
