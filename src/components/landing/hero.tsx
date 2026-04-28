@@ -14,6 +14,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TorusBackdrop } from "@/components/landing/torus-backdrop";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -29,6 +30,31 @@ export function Hero() {
     <section className="relative overflow-hidden border-b border-border">
       <div className="grid-bg absolute inset-0 mask-fade-b opacity-50" />
       <div className="absolute -top-40 left-1/2 h-[420px] w-[820px] -translate-x-1/2 rounded-full bg-accent/15 blur-[140px]" />
+
+      {/* Animated torus of glyphs — full-width canvas, masked to feel anchored on the right */}
+      <div
+        className="pointer-events-none absolute inset-0 hidden md:block"
+        aria-hidden="true"
+      >
+        <div className="absolute -right-[10%] -top-[10%] h-[120%] w-[85%]">
+          <TorusBackdrop className="h-full w-full" />
+        </div>
+        {/* Horizontal fade so the left half stays clean for the text */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
+        {/* Bottom fade so it dissolves into the page below */}
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background to-transparent" />
+      </div>
+
+      {/* Mobile: centered torus behind text */}
+      <div
+        className="pointer-events-none absolute inset-0 md:hidden"
+        aria-hidden="true"
+      >
+        <div className="absolute inset-0 opacity-50">
+          <TorusBackdrop className="h-full w-full" />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/70 to-background" />
+      </div>
 
       <div className="relative mx-auto w-full max-w-7xl px-6 pb-24 pt-16 md:pt-24">
         <motion.div
