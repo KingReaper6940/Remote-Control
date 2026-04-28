@@ -62,7 +62,7 @@ export function SiteHeader() {
               <a
                 key={link.href}
                 href={link.href}
-                className="px-4 py-2 text-sm text-muted-strong transition-all hover:text-foreground hover:underline hover:underline-offset-4"
+                className="relative px-5 py-2.5 text-base font-medium tracking-wide text-muted-strong transition-colors hover:text-foreground after:absolute after:bottom-1.5 after:left-5 after:right-5 after:h-[2px] after:origin-left after:scale-x-0 after:bg-info after:transition-transform after:duration-300 hover:after:scale-x-100"
               >
                 {link.label}
               </a>

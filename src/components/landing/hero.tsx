@@ -12,6 +12,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { GL } from "./gl";
 
 
 const fadeUp = {
@@ -23,7 +24,7 @@ const fadeUp = {
   }),
 };
 
-const rotatingWords = ["scale", "reason", "execute", "adapt"];
+const rotatingWords = ["phone", "browser", "laptop", "iPad", "anywhere"];
 
 function RotatingWord() {
   const [index, setIndex] = useState(0);
@@ -44,7 +45,7 @@ function RotatingWord() {
           animate={{ opacity: 1, y: 0, rotateX: 0 }}
           exit={{ opacity: 0, y: -16, rotateX: 45 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="inline-block text-accent whitespace-nowrap"
+          className="inline-block text-info whitespace-nowrap"
           style={{ transformOrigin: "center bottom" }}
         >
           {rotatingWords[index]}
@@ -56,37 +57,25 @@ function RotatingWord() {
 
 export function Hero() {
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden border-b border-border">
+    <section className="relative min-h-[calc(100vh-4rem)] flex items-center overflow-hidden border-b border-border">
       {/* Grid background */}
       <div className="grid-bg absolute inset-0 mask-fade-b opacity-50" />
 
       {/* Top ambient glow */}
-      <div className="absolute -top-40 left-0 h-[420px] w-[820px] rounded-full bg-accent/15 blur-[140px]" />
+      <div className="absolute -top-40 left-0 h-[420px] w-[820px] rounded-full bg-info/15 blur-[140px]" />
+      
+      {/* Bottom ambient glow */}
+      <div className="absolute -bottom-40 right-0 h-[420px] w-[820px] rounded-full bg-info/10 blur-[140px]" />
 
-      {/* Background video (Tree effect) */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        aria-hidden="true"
-      >
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="w-full h-full object-cover object-center opacity-80 md:object-right"
-        >
-          <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/bg-hero-0BnFGdr81Ifnj3WbBZoNt1KE4D5DMT.mp4" type="video/mp4" />
-        </video>
-        {/* Left readability gradient - stronger for left-aligned text */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 md:via-background/50 to-transparent" />
-        {/* Bottom dissolve */}
-        <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-background to-transparent" />
+      {/* Animated sphere background */}
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-100 mix-blend-screen">
+        <GL hovering={false} />
       </div>
 
       {/* Noise overlay for depth */}
       <div className="noise-overlay pointer-events-none absolute inset-0 z-[2]" />
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-24 md:py-32">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-12">
         <div className="max-w-3xl">
           <motion.div
             variants={fadeUp}
@@ -97,7 +86,7 @@ export function Hero() {
           >
             <div className="h-px w-8 bg-border-strong" />
             <span className="text-xs font-mono uppercase tracking-[0.1em] text-muted-strong">
-              Autonomous AI agents for distributed computing
+              Run AI agents from anywhere
             </span>
           </motion.div>
 
@@ -108,10 +97,10 @@ export function Hero() {
             custom={1}
             className="mt-8 text-5xl font-semibold leading-[0.95] tracking-tight md:text-7xl lg:text-[5.5rem]"
           >
-            Distributed compute,
+            Ship ideas.
             <br />
-            <span className="text-muted-strong">
-              agents that <RotatingWord />
+            <span className="text-muted-strong whitespace-nowrap">
+              Make changes from your <RotatingWord />.
             </span>
           </motion.h1>
 
@@ -120,6 +109,16 @@ export function Hero() {
             initial="hidden"
             animate="show"
             custom={2}
+            className="mt-8 max-w-2xl text-xl text-muted-strong md:text-2xl"
+          >
+            Your work doesn’t stop when you leave your desk.
+          </motion.div>
+
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={3}
             className="mt-10 flex flex-col gap-4 sm:flex-row"
           >
             <Link href={"/signup" as Route}>
@@ -134,30 +133,6 @@ export function Hero() {
                 View documentation
               </Button>
             </a>
-          </motion.div>
-
-          {/* Stats Row */}
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-            custom={3}
-            className="mt-20 grid grid-cols-2 gap-8 md:grid-cols-3"
-          >
-            {[
-              { value: "3500+", label: "autonomous agents active" },
-              { value: "99.7%", label: "distributed uptime" },
-              { value: "<50ms", label: "execution latency" },
-            ].map((stat) => (
-              <div key={stat.label}>
-                <div className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-                  {stat.value}
-                </div>
-                <div className="mt-2 text-[10px] uppercase tracking-[0.05em] text-muted">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
           </motion.div>
         </div>
       </div>

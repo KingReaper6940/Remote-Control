@@ -14,22 +14,27 @@
   },
   "dependencies": {
     "@clerk/nextjs": "latest",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.0",
     "@tailwindcss/postcss": "^4.2.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "convex": "latest",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.11.0",
+    "maath": "^0.10.8",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
     "tailwind-merge": "^3.5.0",
-    "tailwindcss": "^4.2.4"
+    "tailwindcss": "^4.2.4",
+    "three": "^0.184.0"
   },
   "devDependencies": {
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "@types/three": "^0.184.0",
     "eslint": "latest",
     "eslint-config-next": "latest",
     "tsx": "latest",
